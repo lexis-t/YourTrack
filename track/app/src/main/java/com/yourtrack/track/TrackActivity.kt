@@ -18,19 +18,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 package com.yourtrack.track
 
+import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_track.*
 
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory
 import android.support.v4.view.GravityCompat
 import android.view.MenuItem
 import com.yourtrack.track.map.MapController
+import java.util.ArrayList
 
 
 class TrackActivity : AppCompatActivity() {
@@ -73,13 +78,26 @@ class TrackActivity : AppCompatActivity() {
 
         AndroidGraphicFactory.createInstance(application)
 
-        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        try {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 3F, geoListener)
-            mapController = MapController(this, map, locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER))
+        val permissions = ArrayList<String>(2)
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
         }
-        catch (e : SecurityException) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        }
+        if (permissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(this, permissions.toTypedArray(), 0)
+        }
+        else {
+            startTracking()
+        }
+    }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        if (grantResults.size == 2 &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED &&
+                grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+            startTracking()
         }
     }
 
@@ -103,6 +121,16 @@ class TrackActivity : AppCompatActivity() {
             if (location != null) {
                 mapController!!.onLocation(location)
             }
+        }
+        catch (e : SecurityException) {
+        }
+    }
+
+    private fun startTracking() {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        try {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 3F, geoListener)
+            mapController = MapController(this, map, locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER))
         }
         catch (e : SecurityException) {
         }

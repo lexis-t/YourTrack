@@ -22,7 +22,7 @@ import android.os.Environment
 import android.content.Context
 import android.content.SharedPreferences
 import android.location.Location
-import androidx.content.edit
+import androidx.core.content.edit
 import com.yourtrack.track.R
 import org.mapsforge.core.model.LatLong
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory

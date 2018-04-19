@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">YourTrack</string>
+
+    <string name="move_to_cur_location">Center</string>
 </resources>

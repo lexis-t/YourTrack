@@ -33,6 +33,7 @@ import kotlinx.android.synthetic.main.activity_track.*
 
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory
 import android.support.v4.view.GravityCompat
+import android.view.Menu
 import android.view.MenuItem
 import com.yourtrack.track.map.MapController
 import java.util.ArrayList
@@ -101,10 +102,21 @@ class TrackActivity : AppCompatActivity() {
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.main, menu)
+
+        return super.onCreateOptionsMenu(menu)
+    }
+
+
+        override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
                 drawer.openDrawer(GravityCompat.START)
+                return true
+            }
+            R.id.action_current_location -> {
+                mapController!!.centerLastLocation()
                 return true
             }
         }

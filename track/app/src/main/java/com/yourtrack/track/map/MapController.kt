@@ -20,7 +20,9 @@ package com.yourtrack.track.map
 
 import android.os.Environment
 import android.content.Context
+import android.content.SharedPreferences
 import android.location.Location
+import androidx.content.edit
 import com.yourtrack.track.R
 import org.mapsforge.core.model.LatLong
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory
@@ -34,11 +36,18 @@ import java.io.File
 
 
 class MapController(val context: Context, val view: MapView, initialLocation : Location) {
-    val curLocation : Marker
+    val PREFERENCES_FILE = "mapcontroller.pref"
+    val NAME_POS = "position"
+
+    val pref : SharedPreferences
+    var location : LatLong? = null
+    val locationMarker : Marker
 
     init {
-        val locationBmp = AndroidGraphicFactory.convertToBitmap(context.getDrawable(R.drawable.ic_location))
-        curLocation = Marker(LatLong(initialLocation.latitude, initialLocation.longitude), locationBmp, locationBmp.width/2, locationBmp.height/2)
+        pref = context.getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE)
+
+        val locationBmp = AndroidGraphicFactory.convertToBitmap(context.getDrawable(R.drawable.ic_location_mark))
+        locationMarker = Marker(LatLong(initialLocation.latitude, initialLocation.longitude), locationBmp, locationBmp.width/2, locationBmp.height/2)
         view.mapScaleBar.isVisible = true
         view.isClickable = true
         view.setBuiltInZoomControls(true)
@@ -54,15 +63,32 @@ class MapController(val context: Context, val view: MapView, initialLocation : L
         tileRendererLayer.setXmlRenderTheme(InternalRenderTheme.DEFAULT)
 
         view.layerManager.layers.add(tileRendererLayer)
-        view.layerManager.layers.add(curLocation)
+        view.layerManager.layers.add(locationMarker)
 
+        val locationStr = pref.getString(NAME_POS, null)
+        if (locationStr != null) {
+            location = LatLong.fromString(locationStr)
+
+            locationMarker.setLatLong(location)
+            view.setCenter(location)
+        }
     }
 
-    fun onLocation(location: Location?) {
+    fun onLocation(newLocation: Location?) {
+        if (newLocation != null) {
+            val latLong = LatLong(newLocation.latitude, newLocation.longitude)
+            if (location == null || location != view.boundingBox.centerPoint) {
+                location = latLong
+                locationMarker.setLatLong(location)
+                view.setCenter(location)
+                pref.edit {  putString(NAME_POS, "${location!!.latitude}:${location!!.longitude}") }
+            }
+        }
+    }
+
+    fun centerLastLocation() {
         if (location != null) {
-            val latLong = LatLong(location.latitude, location.longitude)
-            curLocation.setLatLong(latLong)
-            view.setCenter(latLong)
+            view.setCenter(location)
         }
     }
 

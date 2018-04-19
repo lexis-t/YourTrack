@@ -35,13 +35,13 @@ import org.mapsforge.map.rendertheme.InternalRenderTheme
 import java.io.File
 
 
-class MapController(val context: Context, val view: MapView, initialLocation : Location) {
-    val PREFERENCES_FILE = "mapcontroller.pref"
-    val NAME_POS = "position"
+class MapController(context: Context, private val view: MapView, initialLocation : Location) {
+    private val PREFERENCES_FILE = "mapcontroller.pref"
+    private val NAME_POS = "position"
 
-    val pref : SharedPreferences
-    var location : LatLong? = null
-    val locationMarker : Marker
+    private val pref : SharedPreferences
+    private var location : LatLong? = null
+    private val locationMarker : Marker
 
     init {
         pref = context.getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE)
@@ -69,7 +69,7 @@ class MapController(val context: Context, val view: MapView, initialLocation : L
         if (locationStr != null) {
             location = LatLong.fromString(locationStr)
 
-            locationMarker.setLatLong(location)
+            locationMarker.latLong = location
             view.setCenter(location)
         }
     }
@@ -79,7 +79,7 @@ class MapController(val context: Context, val view: MapView, initialLocation : L
             val latLong = LatLong(newLocation.latitude, newLocation.longitude)
             if (location == null || location != view.boundingBox.centerPoint) {
                 location = latLong
-                locationMarker.setLatLong(location)
+                locationMarker.latLong = location
                 view.setCenter(location)
                 pref.edit {  putString(NAME_POS, "${location!!.latitude}:${location!!.longitude}") }
             }

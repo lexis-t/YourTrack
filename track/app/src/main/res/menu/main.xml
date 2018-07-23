@@ -7,4 +7,10 @@
         app:showAsAction="ifRoom"
         android:title="@string/move_to_cur_location"
         />
+    <item
+        android:id="@+id/action_track"
+        android:icon="@drawable/ic_track"
+        app:showAsAction="ifRoom"
+        android:title="@string/record_track"
+        />
 </menu>

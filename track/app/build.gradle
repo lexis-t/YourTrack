@@ -5,11 +5,11 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     defaultConfig {
         applicationId "com.yourtrack.track"
         minSdkVersion 22
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -25,9 +25,9 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation 'com.android.support:design:27.1.1'
-    implementation 'com.android.support.constraint:constraint-layout:1.1.2'
+//    implementation 'com.android.support:appcompat-v7:28.0.0'
+//    implementation 'com.android.support:design:28.0.0'
+//    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 
     implementation 'org.mapsforge:mapsforge-core:0.9.1'
     implementation 'org.mapsforge:mapsforge-map:0.9.1'
@@ -38,7 +38,10 @@ dependencies {
     implementation 'org.mapsforge:mapsforge-map-android:0.9.1'
     implementation 'com.caverock:androidsvg:1.2.2-beta-1'
 
-    implementation 'androidx.core:core-ktx:0.3'
+    implementation 'androidx.core:core-ktx:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+//    implementation 'androidx.appcompat:design:1.0.0'
+//    implementation 'androidx.constraint:appcompat:1.0.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'

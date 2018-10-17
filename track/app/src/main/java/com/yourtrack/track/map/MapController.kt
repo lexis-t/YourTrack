@@ -92,6 +92,16 @@ class MapController(context: Context, private val view: MapView, initialLocation
         }
     }
 
+    fun getMap(): MapView {
+        return view;
+    }
+
+    fun newTrack(): TrackController {
+        val track = TrackController(this)
+        view.layerManager.layers.add(track.layer)
+        return track
+    }
+
     fun close() {
         view.destroyAll()
     }

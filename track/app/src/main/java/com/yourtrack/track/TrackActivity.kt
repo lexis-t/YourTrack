@@ -25,17 +25,18 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.support.v7.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_track.*
 
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory
-import android.support.v4.view.GravityCompat
 import android.view.Menu
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
 import com.yourtrack.track.map.MapController
+import com.yourtrack.track.map.TrackController
 import java.util.ArrayList
 
 
@@ -44,11 +45,15 @@ class TrackActivity : AppCompatActivity() {
     private val PREFS = "settings.pref"
 
     private var mapController: MapController? = null
+    private var activeTrack: TrackController? = null
     private var prefs : SharedPreferences? = null
     private val geoListener = object : LocationListener {
         override fun onLocationChanged(l: Location?) {
             if (mapController != null && l != null) {
                 mapController!!.onLocation(l)
+            }
+            if (activeTrack != null && l != null) {
+                activeTrack!!.onLocation(l)
             }
         }
 
@@ -117,6 +122,10 @@ class TrackActivity : AppCompatActivity() {
             }
             R.id.action_current_location -> {
                 mapController!!.centerLastLocation()
+                return true
+            }
+            R.id.action_track -> {
+                activeTrack = mapController!!.newTrack()
                 return true
             }
         }

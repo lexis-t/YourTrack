@@ -57,7 +57,7 @@ class MapController(context: Context, private val view: MapView, initialLocation
                view.model.displayModel.tileSize, 1f,
                view.model.frameBufferModel.overdrawFactor)
 
-        val mapDataStore = MapFile(File(Environment.getExternalStorageDirectory(), "North-West-1.map"))
+        val mapDataStore = MapFile(File(Environment.getExternalStorageDirectory(), "earth.map"))
         val tileRendererLayer = TileRendererLayer(tileCache, mapDataStore, view.model.mapViewPosition, AndroidGraphicFactory.INSTANCE)
 
         tileRendererLayer.setXmlRenderTheme(InternalRenderTheme.DEFAULT)

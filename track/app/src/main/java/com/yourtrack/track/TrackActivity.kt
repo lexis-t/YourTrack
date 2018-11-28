@@ -151,7 +151,13 @@ class TrackActivity : AppCompatActivity() {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         try {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 3F, geoListener)
-            mapController = MapController(this, map, locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER))
+            var lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            if (lastLocation == null) {
+                lastLocation = Location("?")
+                lastLocation.setLatitude(0.0)
+                lastLocation.setLongitude(0.0)
+            }
+            mapController = MapController(this, map, lastLocation)
         }
         catch (e : SecurityException) {
         }

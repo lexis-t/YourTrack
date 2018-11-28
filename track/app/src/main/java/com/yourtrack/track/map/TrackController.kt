@@ -14,7 +14,7 @@ class TrackController(map: MapController) {
     init {
         paint = AndroidGraphicFactory.INSTANCE.createPaint();
         paint.color = AndroidGraphicFactory.INSTANCE.createColor(Color.GREEN)
-        paint.strokeWidth = 2 * map.getMap().model.displayModel.scaleFactor
+        paint.strokeWidth = 2 * map.getScale()
         paint.setStyle(Style.STROKE)
 
         layer = Polyline(paint, AndroidGraphicFactory.INSTANCE)

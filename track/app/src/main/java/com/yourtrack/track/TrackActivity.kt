@@ -150,7 +150,7 @@ class TrackActivity : AppCompatActivity() {
     private fun startTracking() {
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         try {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 3F, geoListener)
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 150F, geoListener)
             var lastLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
             if (lastLocation == null) {
                 lastLocation = Location("?")

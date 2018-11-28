@@ -92,8 +92,8 @@ class MapController(context: Context, private val view: MapView, initialLocation
         }
     }
 
-    fun getMap(): MapView {
-        return view;
+    fun getScale() : Float {
+        return view.model.displayModel.scaleFactor
     }
 
     fun newTrack(): TrackController {

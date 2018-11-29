@@ -112,6 +112,10 @@ public final class MapController {
         return track;
     }
 
+    void repaintMap() {
+        view.postInvalidate();
+    }
+
     public final void close() {
         view.destroyAll();
     }

@@ -11,10 +11,14 @@ import org.mapsforge.map.android.graphics.AndroidGraphicFactory;
 import org.mapsforge.map.layer.Layer;
 import org.mapsforge.map.layer.overlay.Polyline;
 
+import java.lang.ref.WeakReference;
+
 public class TrackController {
+    private WeakReference<MapController> mapController;
     private Paint paint;
     private Polyline layer;
     TrackController(MapController map) {
+        mapController = new WeakReference<>(map);
         paint = AndroidGraphicFactory.INSTANCE.createPaint();
         paint.setColor(AndroidGraphicFactory.INSTANCE.createColor(Color.GREEN));
         paint.setStrokeWidth(2 * map.getScale());
@@ -25,7 +29,8 @@ public class TrackController {
 
     public void onLocation(@Nullable Location newLocation) {
         if (newLocation != null) {
-            layer.getLatLongs().add(new LatLong(newLocation.getLatitude(), newLocation.getLongitude()));
+            layer.addPoint(new LatLong(newLocation.getLatitude(), newLocation.getLongitude()));
+            mapController.get().repaintMap();
         }
     }
 

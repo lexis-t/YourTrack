@@ -27,6 +27,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import androidx.core.app.ActivityCompat
 import android.os.Bundle
+import android.os.Environment
 import kotlinx.android.synthetic.main.activity_track.*
 
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory
@@ -35,8 +36,13 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
-import com.yourtrack.track.map.MapController
-import com.yourtrack.track.map.TrackController
+import com.yourtrack.track.map.ITrackFilter
+import com.yourtrack.track.mapsforge.MapController
+import com.yourtrack.track.mapsforge.TrackController
+import com.yourtrack.track.trackfilters.GpxTrackFilter
+import com.yourtrack.track.trackfilters.MinAccuracyTrackFilter
+import com.yourtrack.track.trackfilters.MinMoveTrackFilter
+import com.yourtrack.track.trackfilters.TrackFilterChain
 import java.util.ArrayList
 
 
@@ -46,6 +52,7 @@ class TrackActivity : AppCompatActivity() {
 
     private var mapController: MapController? = null
     private var activeTrack: TrackController? = null
+    private val trackFilter: TrackFilterChain
     private var prefs : SharedPreferences? = null
     private val geoListener = object : LocationListener {
         override fun onLocationChanged(l: Location?) {
@@ -66,6 +73,15 @@ class TrackActivity : AppCompatActivity() {
         override fun onProviderDisabled(p0: String?) {
         }
 
+    }
+
+    init {
+        val filters = ArrayList<ITrackFilter>()
+        filters.add(MinAccuracyTrackFilter(30.0))
+        filters.add(MinMoveTrackFilter(10.0))
+        filters.add(GpxTrackFilter(Environment.getExternalStorageDirectory().absolutePath))
+
+        trackFilter = TrackFilterChain(filters)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -126,6 +142,7 @@ class TrackActivity : AppCompatActivity() {
             }
             R.id.action_track -> {
                 activeTrack = mapController!!.newTrack()
+                activeTrack!!.setTrackFilter(trackFilter)
                 return true
             }
         }

@@ -6,7 +6,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.yourtrack.track"
-        minSdkVersion 22
+        minSdkVersion 26
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -17,6 +17,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    compileOptions {
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
     }
 }
 
@@ -35,6 +39,8 @@ dependencies {
     implementation 'net.sf.kxml:kxml2:2.3.0'
 
     implementation 'com.caverock:androidsvg:1.3'
+    implementation 'io.jenetics:jpx:1.4.0'
+    implementation 'joda-time:joda-time:2.10.1'
 
     implementation 'androidx.core:core-ktx:1.0.1'
     implementation 'androidx.appcompat:appcompat:1.0.2'

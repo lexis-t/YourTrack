@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-package com.yourtrack.track.map;
+package com.yourtrack.track.mapsforge;
 
 import android.os.Environment;
 import android.content.Context;
@@ -24,6 +24,7 @@ import android.content.SharedPreferences;
 import android.location.Location;
 
 import com.yourtrack.track.R;
+import com.yourtrack.track.map.IMapController;
 
 import org.mapsforge.core.graphics.Bitmap;
 import org.mapsforge.core.model.LatLong;
@@ -41,7 +42,7 @@ import org.mapsforge.map.layer.cache.TileCache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class MapController {
+public final class MapController implements IMapController {
     private final static String PREFERENCES_FILE =  "mapcontroller.pref";
     private final static String NAME_POS = "position";
     private final SharedPreferences pref;

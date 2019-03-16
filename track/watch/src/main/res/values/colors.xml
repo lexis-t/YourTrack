@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ambient_foreground">@color/light_grey</color>
+    <color name="ambient_background">@color/black</color>
+    <color name="interactive_heartrate">@color/red</color>
+    <color name="interactive_background">@color/grey</color>
+</resources>

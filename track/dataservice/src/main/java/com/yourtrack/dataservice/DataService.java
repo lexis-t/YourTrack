@@ -13,32 +13,52 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.ActivityTransition;
+import com.google.android.gms.location.ActivityTransitionEvent;
+import com.google.android.gms.location.ActivityTransitionRequest;
+import com.google.android.gms.location.ActivityTransitionResult;
+import com.google.android.gms.location.DetectedActivity;
+import com.google.android.gms.tasks.Task;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class DataService extends Service {
     private final static String LOG_TAG = "YourTrack";
 
+    private static final int REQUEST_ID_ACTIVITY_TRANSITION = 2;
+
     private final static String ACTION_START = "ACTION_START";
     private final static String ACTION_STOP = "ACTION_STOP";
+    private final static String ACTION_ACTIVITY_TRANSITION = "ACTION_ACTIVITY_TRANSITION";
 
     public final static String ACTION_DATA = "ACTION_DATA";
-    public final static String EXTRA_SENSOR = "sensor";
+    public final static String EXTRA_SENSOR_TYPE = "sensor";
     public final static String EXTRA_VALUE = "value";
     public final static String EXTRA_ACCURACY = "accuracy";
     public final static String EXTRA_TIMESTAMP = "timestamp";
+    public final static String EXTRA_ACTIVITY = "activity";
 
     public final static String EXTRA_SENSOR_HR = "heartrate";
-//    public final static String EXTRA_ACCURACY = "accuracy";
+    public final static String EXTRA_ACTIVITY_UNKNOWN = "unknown";
+    public final static String EXTRA_ACTIVITY_WALK = "walk";
+    public final static String EXTRA_ACTIVITY_RUN = "run";
+    public final static String EXTRA_ACTIVITY_BICYCLE = "bicycle";
+    public final static String EXTRA_ACTIVITY_DRIVE = "drive";
+    public final static String EXTRA_ACTIVITY_SLEEP = "sleep";
 
-    public DataService() {
-    }
+    private boolean isStarted = false;
+    private PendingIntent activityTransitionsPendingIntent = null;
 
-    SensorManager sensorManager;
-    SensorEventListener hrListener = new SensorEventListener() {
+    private SensorManager sensorManager;
+    private SensorEventListener hrListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
             Log.i(LOG_TAG, "Heart rate: " + event.values[0] + " , accuracy: " + event.accuracy);
 
             Intent i = new Intent(ACTION_DATA);
-            i.putExtra(EXTRA_SENSOR, EXTRA_SENSOR_HR);
+            i.putExtra(EXTRA_SENSOR_TYPE, EXTRA_SENSOR_HR);
             i.putExtra(EXTRA_VALUE, event.values[0]);
             i.putExtra(EXTRA_ACCURACY, event.accuracy);
             i.putExtra(EXTRA_TIMESTAMP, event.timestamp);
@@ -61,6 +81,9 @@ public class DataService extends Service {
     @Override
     public void onDestroy() {
 
+        stop();
+        isStarted = false;
+
         sensorManager.unregisterListener(hrListener);
 
         sensorManager = null;
@@ -78,6 +101,12 @@ public class DataService extends Service {
                     Log.d(LOG_TAG, "Start tracking command");
                     startForeground();
                     collectData();
+                    return START_STICKY;
+                case ACTION_ACTIVITY_TRANSITION:
+                    Log.d(LOG_TAG, "Activity transition");
+                    if (isStarted && ActivityTransitionResult.hasResult(i)) {
+                        processActivityTransition(ActivityTransitionResult.extractResult(i));
+                    }
                     return START_STICKY;
                 case ACTION_STOP:
                     stopSelf();
@@ -97,6 +126,7 @@ public class DataService extends Service {
                 .setContentIntent(PendingIntent.getActivity(this, 0, i, 0)).build();
 
         startForeground(0, n);
+        isStarted = true;
     }
 
     private void collectData() {
@@ -113,6 +143,126 @@ public class DataService extends Service {
         }
         else {
             Log.i(LOG_TAG, "HR monitoring is failed");
+        }
+
+        List<ActivityTransition> transitions = new ArrayList<>();
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.WALKING)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.WALKING)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.RUNNING)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.RUNNING)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.ON_BICYCLE)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.ON_BICYCLE)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.IN_VEHICLE)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.IN_VEHICLE)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.STILL)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.STILL)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        Intent i = new Intent(this, DataService.class);
+        i.setAction(ACTION_ACTIVITY_TRANSITION);
+        PendingIntent pi = PendingIntent.getService(this, REQUEST_ID_ACTIVITY_TRANSITION, i, 0);
+
+
+        Task<Void> registerTask = ActivityRecognition.getClient(this).requestActivityTransitionUpdates(new ActivityTransitionRequest(transitions), pi);
+        registerTask.addOnFailureListener(r -> Log.w(LOG_TAG, "Failed to request activity transitions"));
+        registerTask.addOnSuccessListener(r -> activityTransitionsPendingIntent = pi);
+
+    }
+
+    private void processActivityTransition(ActivityTransitionResult r) {
+//        List<ActivityTransitionEvent> transitions = r.getTransitionEvents();
+//
+//        ActivityTransitionEvent lastTransition = transitions.get(transitions.size() - 1);
+
+        String activityExtra = null;
+        for (ActivityTransitionEvent transition : r.getTransitionEvents()) {
+            if (transition.getTransitionType() == ActivityTransition.ACTIVITY_TRANSITION_ENTER) {
+                Log.i(LOG_TAG, "User started new activity: " + transition.getActivityType());
+
+                switch (transition.getActivityType()) {
+                    case DetectedActivity.WALKING:
+                        activityExtra = EXTRA_ACTIVITY_WALK;
+                        break;
+                    case DetectedActivity.RUNNING:
+                        activityExtra = EXTRA_ACTIVITY_RUN;
+                        break;
+                    case DetectedActivity.ON_BICYCLE:
+                        activityExtra = EXTRA_ACTIVITY_BICYCLE;
+                        break;
+                    case DetectedActivity.IN_VEHICLE:
+                        activityExtra = EXTRA_ACTIVITY_DRIVE;
+                        break;
+                    default:
+                        activityExtra = EXTRA_ACTIVITY_UNKNOWN;
+                        break;
+
+                }
+            }
+            else {
+                Log.i(LOG_TAG, "User stopped activity: " + transition.getActivityType());
+                activityExtra = EXTRA_ACTIVITY_UNKNOWN;
+            }
+
+            Intent i = new Intent(ACTION_DATA);
+            i.putExtra(EXTRA_ACTIVITY, activityExtra);
+
+            LocalBroadcastManager.getInstance(DataService.this).sendBroadcast(i);
+
+        }
+    }
+
+    private void stop() {
+        if (activityTransitionsPendingIntent != null) {
+            ActivityRecognition.getClient(this).removeActivityTransitionUpdates(activityTransitionsPendingIntent);
         }
     }
 

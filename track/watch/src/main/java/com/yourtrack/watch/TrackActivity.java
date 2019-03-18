@@ -12,6 +12,7 @@ import android.support.wearable.activity.WearableActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.yourtrack.dataservice.DataService;
@@ -25,12 +26,13 @@ public class TrackActivity extends WearableActivity {
     private View backgroundView;
     private TextView textIndicatorView;
     private Button stopButton;
+    private ImageView activityView;
 
     private BroadcastReceiver dataReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent != null) {
-                String extraSensor = intent.getStringExtra(DataService.EXTRA_SENSOR);
+                String extraSensor = intent.getStringExtra(DataService.EXTRA_SENSOR_TYPE);
                 if (extraSensor != null && extraSensor.equals(DataService.EXTRA_SENSOR_HR)) {
                     float value = intent.getFloatExtra(DataService.EXTRA_VALUE, 0.0f);
                     int accuracy = intent.getIntExtra(DataService.EXTRA_ACCURACY, -1);
@@ -38,6 +40,36 @@ public class TrackActivity extends WearableActivity {
 
                     runOnUiThread(()->{
                         textIndicatorView.setText(String.format("%d", (int)value));
+                    });
+                }
+                String extraActivity = intent.getStringExtra(DataService.EXTRA_ACTIVITY);
+                if (extraActivity != null) {
+                    runOnUiThread(() -> {
+                        switch (extraActivity) {
+                            case DataService.EXTRA_ACTIVITY_WALK:
+                                activityView.setVisibility(View.VISIBLE);
+                                activityView.setImageResource(R.drawable.ic_walk);
+                                break;
+                            case DataService.EXTRA_ACTIVITY_RUN:
+                                activityView.setVisibility(View.VISIBLE);
+                                activityView.setImageResource(R.drawable.ic_run);
+                                break;
+                            case DataService.EXTRA_ACTIVITY_BICYCLE:
+                                activityView.setVisibility(View.VISIBLE);
+                                activityView.setImageResource(R.drawable.ic_bicycle);
+                                break;
+                            case DataService.EXTRA_ACTIVITY_DRIVE:
+                                activityView.setVisibility(View.VISIBLE);
+                                activityView.setImageResource(R.drawable.ic_car);
+                                break;
+                            case DataService.EXTRA_ACTIVITY_SLEEP:
+                                activityView.setVisibility(View.VISIBLE);
+                                activityView.setImageResource(R.drawable.ic_sleep);
+                                break;
+                            default:
+                                activityView.setVisibility(View.INVISIBLE);
+                                break;
+                        }
                     });
                 }
             }
@@ -53,6 +85,7 @@ public class TrackActivity extends WearableActivity {
         backgroundView = findViewById(R.id.background_view);
         textIndicatorView = findViewById(R.id.main_indicator);
         stopButton = findViewById(R.id.stop_button);
+        activityView = findViewById(R.id.activity_indicator);
 
         stopButton.setOnClickListener(v -> {
             DataService.stopTracking(this);

@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">DataService</string>
+    <string name="tracking">Tracking your activity</string>
+</resources>

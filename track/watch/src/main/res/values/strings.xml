@@ -5,4 +5,5 @@
     values-round/strings.xml for round devices.
     -->
     <string name="sample">BPS</string>
+    <string name="stop">Stop</string>
 </resources>

@@ -4,6 +4,6 @@
     This string is used for square devices and overridden by hello_world in
     values-round/strings.xml for round devices.
     -->
-    <string name="sample">BPS</string>
+    <string name="sample">…</string>
     <string name="stop">Stop</string>
 </resources>

@@ -39,7 +39,12 @@ public class TrackActivity extends WearableActivity {
                     long timestamp = intent.getLongExtra(DataService.EXTRA_TIMESTAMP, -1L);
 
                     runOnUiThread(()->{
-                        textIndicatorView.setText(String.format("%d", (int)value));
+                        if (timestamp > System.currentTimeMillis() - 60*1000 && accuracy != -1) {
+                            textIndicatorView.setText(String.format(getResources().getConfiguration().locale, "%d", (int) value));
+                        }
+                        else {
+                            textIndicatorView.setText(R.string.sample);
+                        }
                     });
                 }
                 String extraActivity = intent.getStringExtra(DataService.EXTRA_ACTIVITY);

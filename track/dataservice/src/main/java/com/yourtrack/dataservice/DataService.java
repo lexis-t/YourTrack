@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -51,11 +52,22 @@ public class DataService extends Service {
     private boolean isStarted = false;
     private PendingIntent activityTransitionsPendingIntent = null;
 
+    private float lastHrValue = 0.0f;
+    private int lastHrAccuracy = -1;
+    private long lastHrTimestamp = -1L;
+
+    private String lastActivityType = EXTRA_ACTIVITY_UNKNOWN;
+    private long lastActivityTimestamp = -1L;
+
     private SensorManager sensorManager;
     private SensorEventListener hrListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
             Log.i(LOG_TAG, "Heart rate: " + event.values[0] + " , accuracy: " + event.accuracy);
+
+            lastHrValue = event.values[0];
+            lastHrAccuracy = event.accuracy;
+            lastHrTimestamp = event.timestamp;
 
             Intent i = new Intent(ACTION_DATA);
             i.putExtra(EXTRA_SENSOR_TYPE, EXTRA_SENSOR_HR);
@@ -123,6 +135,7 @@ public class DataService extends Service {
                 .setContentTitle(getResources().getString(R.string.app_name))
                 .setContentText(getResources().getString(R.string.tracking))
                 .setSmallIcon(R.drawable.ic_heartrate_bw)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_heartrate_bw))
                 .setContentIntent(PendingIntent.getActivity(this, 0, i, 0)).build();
 
         startForeground(0, n);
@@ -133,16 +146,16 @@ public class DataService extends Service {
         Sensor hrSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
         if (hrSensor == null) {
             Log.w(LOG_TAG, "HR sensor is unavailable");
-            return;
-        }
-
-        Log.i(LOG_TAG, "HR sensor: is wakeup: " + hrSensor.isWakeUpSensor() + ", reporting mode: " + hrSensor.getReportingMode());
-
-        if (sensorManager.registerListener(hrListener, hrSensor, SensorManager.SENSOR_DELAY_UI)) {
-            Log.i(LOG_TAG, "HR monitoring is started");
         }
         else {
-            Log.i(LOG_TAG, "HR monitoring is failed");
+
+            Log.i(LOG_TAG, "HR sensor: is wakeup: " + hrSensor.isWakeUpSensor() + ", reporting mode: " + hrSensor.getReportingMode());
+
+            if (sensorManager.registerListener(hrListener, hrSensor, SensorManager.SENSOR_DELAY_UI)) {
+                Log.i(LOG_TAG, "HR monitoring is started");
+            } else {
+                Log.i(LOG_TAG, "HR monitoring is failed");
+            }
         }
 
         List<ActivityTransition> transitions = new ArrayList<>();
@@ -216,6 +229,22 @@ public class DataService extends Service {
         registerTask.addOnFailureListener(r -> Log.w(LOG_TAG, "Failed to request activity transitions"));
         registerTask.addOnSuccessListener(r -> activityTransitionsPendingIntent = pi);
 
+        if (lastHrTimestamp != -1L) {
+            Intent intent = new Intent(ACTION_DATA);
+            intent.putExtra(EXTRA_SENSOR_TYPE, EXTRA_SENSOR_HR);
+            intent.putExtra(EXTRA_VALUE, lastHrValue);
+            intent.putExtra(EXTRA_ACCURACY, lastHrAccuracy);
+            intent.putExtra(EXTRA_TIMESTAMP, lastHrTimestamp);
+
+            LocalBroadcastManager.getInstance(DataService.this).sendBroadcast(intent);
+        }
+
+        if (lastActivityTimestamp != -1) {
+            Intent intent = new Intent(ACTION_DATA);
+            intent.putExtra(EXTRA_ACTIVITY, lastActivityType);
+            intent.putExtra(EXTRA_TIMESTAMP, lastActivityTimestamp);
+        }
+
     }
 
     private void processActivityTransition(ActivityTransitionResult r) {
@@ -223,37 +252,43 @@ public class DataService extends Service {
 //
 //        ActivityTransitionEvent lastTransition = transitions.get(transitions.size() - 1);
 
-        String activityExtra = null;
         for (ActivityTransitionEvent transition : r.getTransitionEvents()) {
             if (transition.getTransitionType() == ActivityTransition.ACTIVITY_TRANSITION_ENTER) {
                 Log.i(LOG_TAG, "User started new activity: " + transition.getActivityType());
 
                 switch (transition.getActivityType()) {
                     case DetectedActivity.WALKING:
-                        activityExtra = EXTRA_ACTIVITY_WALK;
+                        lastActivityType = EXTRA_ACTIVITY_WALK;
+                        lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
                         break;
                     case DetectedActivity.RUNNING:
-                        activityExtra = EXTRA_ACTIVITY_RUN;
+                        lastActivityType = EXTRA_ACTIVITY_RUN;
+                        lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
                         break;
                     case DetectedActivity.ON_BICYCLE:
-                        activityExtra = EXTRA_ACTIVITY_BICYCLE;
+                        lastActivityType = EXTRA_ACTIVITY_BICYCLE;
+                        lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
                         break;
                     case DetectedActivity.IN_VEHICLE:
-                        activityExtra = EXTRA_ACTIVITY_DRIVE;
+                        lastActivityType = EXTRA_ACTIVITY_DRIVE;
+                        lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
                         break;
                     default:
-                        activityExtra = EXTRA_ACTIVITY_UNKNOWN;
+                        lastActivityType = EXTRA_ACTIVITY_UNKNOWN;
+                        lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
                         break;
 
                 }
             }
             else {
                 Log.i(LOG_TAG, "User stopped activity: " + transition.getActivityType());
-                activityExtra = EXTRA_ACTIVITY_UNKNOWN;
+                lastActivityType = EXTRA_ACTIVITY_UNKNOWN;
+                lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
             }
 
             Intent i = new Intent(ACTION_DATA);
-            i.putExtra(EXTRA_ACTIVITY, activityExtra);
+            i.putExtra(EXTRA_ACTIVITY, lastActivityType);
+            i.putExtra(EXTRA_TIMESTAMP, lastActivityTimestamp);
 
             LocalBroadcastManager.getInstance(DataService.this).sendBroadcast(i);
 

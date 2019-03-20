@@ -49,6 +49,71 @@ public class DataService extends Service {
     public final static String EXTRA_ACTIVITY_DRIVE = "drive";
     public final static String EXTRA_ACTIVITY_SLEEP = "sleep";
 
+    private final static List<ActivityTransition> ACTIVITY_TRANSITIONS = new ArrayList<>();
+
+    static {
+        ACTIVITY_TRANSITIONS.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.WALKING)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        ACTIVITY_TRANSITIONS.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.WALKING)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        ACTIVITY_TRANSITIONS.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.RUNNING)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        ACTIVITY_TRANSITIONS.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.RUNNING)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        ACTIVITY_TRANSITIONS.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.ON_BICYCLE)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        ACTIVITY_TRANSITIONS.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.ON_BICYCLE)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        ACTIVITY_TRANSITIONS.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.IN_VEHICLE)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        ACTIVITY_TRANSITIONS.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.IN_VEHICLE)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        ACTIVITY_TRANSITIONS.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.STILL)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        ACTIVITY_TRANSITIONS.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.STILL)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+    }
+
     private boolean isStarted = false;
     private PendingIntent activityTransitionsPendingIntent = null;
 
@@ -112,7 +177,7 @@ public class DataService extends Service {
                 case ACTION_START:
                     Log.d(LOG_TAG, "Start tracking command");
                     startForeground();
-                    collectData();
+                    startCollectData();
                     return START_STICKY;
                 case ACTION_ACTIVITY_TRANSITION:
                     Log.d(LOG_TAG, "Activity transition");
@@ -142,7 +207,7 @@ public class DataService extends Service {
         isStarted = true;
     }
 
-    private void collectData() {
+    private void startCollectData() {
         Sensor hrSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
         if (hrSensor == null) {
             Log.w(LOG_TAG, "HR sensor is unavailable");
@@ -158,74 +223,11 @@ public class DataService extends Service {
             }
         }
 
-        List<ActivityTransition> transitions = new ArrayList<>();
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.WALKING)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.WALKING)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.RUNNING)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.RUNNING)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.ON_BICYCLE)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.ON_BICYCLE)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.IN_VEHICLE)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.IN_VEHICLE)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.STILL)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.STILL)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-                        .build());
-
         Intent i = new Intent(this, DataService.class);
         i.setAction(ACTION_ACTIVITY_TRANSITION);
         PendingIntent pi = PendingIntent.getService(this, REQUEST_ID_ACTIVITY_TRANSITION, i, 0);
 
-
-        Task<Void> registerTask = ActivityRecognition.getClient(this).requestActivityTransitionUpdates(new ActivityTransitionRequest(transitions), pi);
+        Task<Void> registerTask = ActivityRecognition.getClient(this).requestActivityTransitionUpdates(new ActivityTransitionRequest(ACTIVITY_TRANSITIONS), pi);
         registerTask.addOnFailureListener(r -> Log.w(LOG_TAG, "Failed to request activity transitions"));
         registerTask.addOnSuccessListener(r -> activityTransitionsPendingIntent = pi);
 
@@ -248,50 +250,43 @@ public class DataService extends Service {
     }
 
     private void processActivityTransition(ActivityTransitionResult r) {
-//        List<ActivityTransitionEvent> transitions = r.getTransitionEvents();
-//
-//        ActivityTransitionEvent lastTransition = transitions.get(transitions.size() - 1);
 
-        for (ActivityTransitionEvent transition : r.getTransitionEvents()) {
-            if (transition.getTransitionType() == ActivityTransition.ACTIVITY_TRANSITION_ENTER) {
-                Log.i(LOG_TAG, "User started new activity: " + transition.getActivityType());
+        if (r != null) {
+            for (ActivityTransitionEvent transition : r.getTransitionEvents()) {
+                if (transition.getTransitionType() == ActivityTransition.ACTIVITY_TRANSITION_ENTER) {
+                    Log.i(LOG_TAG, "User started new activity: " + transition.getActivityType());
 
-                switch (transition.getActivityType()) {
-                    case DetectedActivity.WALKING:
-                        lastActivityType = EXTRA_ACTIVITY_WALK;
-                        lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
-                        break;
-                    case DetectedActivity.RUNNING:
-                        lastActivityType = EXTRA_ACTIVITY_RUN;
-                        lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
-                        break;
-                    case DetectedActivity.ON_BICYCLE:
-                        lastActivityType = EXTRA_ACTIVITY_BICYCLE;
-                        lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
-                        break;
-                    case DetectedActivity.IN_VEHICLE:
-                        lastActivityType = EXTRA_ACTIVITY_DRIVE;
-                        lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
-                        break;
-                    default:
-                        lastActivityType = EXTRA_ACTIVITY_UNKNOWN;
-                        lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
-                        break;
+                    switch (transition.getActivityType()) {
+                        case DetectedActivity.WALKING:
+                            lastActivityType = EXTRA_ACTIVITY_WALK;
+                            break;
+                        case DetectedActivity.RUNNING:
+                            lastActivityType = EXTRA_ACTIVITY_RUN;
+                            break;
+                        case DetectedActivity.ON_BICYCLE:
+                            lastActivityType = EXTRA_ACTIVITY_BICYCLE;
+                            break;
+                        case DetectedActivity.IN_VEHICLE:
+                            lastActivityType = EXTRA_ACTIVITY_DRIVE;
+                            break;
+                        default:
+                            lastActivityType = EXTRA_ACTIVITY_UNKNOWN;
+                            break;
 
+                    }
+                } else {
+                    Log.i(LOG_TAG, "User stopped activity: " + transition.getActivityType());
+                    lastActivityType = EXTRA_ACTIVITY_UNKNOWN;
                 }
             }
-            else {
-                Log.i(LOG_TAG, "User stopped activity: " + transition.getActivityType());
-                lastActivityType = EXTRA_ACTIVITY_UNKNOWN;
-                lastActivityTimestamp = System.currentTimeMillis() - (transition.getElapsedRealTimeNanos()/1000);
-            }
+
+            lastActivityTimestamp = System.currentTimeMillis() - (r.getTransitionEvents().get(r.getTransitionEvents().size() - 1).getElapsedRealTimeNanos() / 1000);
 
             Intent i = new Intent(ACTION_DATA);
             i.putExtra(EXTRA_ACTIVITY, lastActivityType);
             i.putExtra(EXTRA_TIMESTAMP, lastActivityTimestamp);
 
             LocalBroadcastManager.getInstance(DataService.this).sendBroadcast(i);
-
         }
     }
 

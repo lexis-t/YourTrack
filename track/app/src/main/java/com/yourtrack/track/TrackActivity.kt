@@ -36,13 +36,9 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
-import com.yourtrack.track.map.ITrackFilter
+import com.yourtrack.dataservice.activity.*
 import com.yourtrack.track.mapsforge.MapController
 import com.yourtrack.track.mapsforge.TrackController
-import com.yourtrack.track.trackfilters.GpxTrackFilter
-import com.yourtrack.track.trackfilters.MinAccuracyTrackFilter
-import com.yourtrack.track.trackfilters.MinMoveTrackFilter
-import com.yourtrack.track.trackfilters.TrackFilterChain
 import java.util.ArrayList
 
 

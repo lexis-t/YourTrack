@@ -1,4 +1,4 @@
-package com.yourtrack.track.map;
+package com.yourtrack.dataservice.activity;
 
 import android.location.Location;
 

@@ -1,9 +1,9 @@
-package com.yourtrack.track.map;
+package com.yourtrack.dataservice.activity;
 
 import android.location.Location;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public interface ITrackFilter {
     enum FilterResult {
@@ -13,6 +13,6 @@ public interface ITrackFilter {
             return cumulativeResult.ordinal() < result.ordinal() ? result : cumulativeResult;
         }
     }
-    @NotNull FilterResult filterTrack(TrackPatch track, @Nullable Location nextLocation, @NotNull FilterResult cumulativeResult) throws Exception;
+    @NonNull FilterResult filterTrack(TrackPatch track, @Nullable Location nextLocation, @NonNull FilterResult cumulativeResult) throws Exception;
 
 }

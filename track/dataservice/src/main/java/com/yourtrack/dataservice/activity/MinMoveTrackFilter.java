@@ -1,13 +1,10 @@
-package com.yourtrack.track.trackfilters;
+package com.yourtrack.dataservice.activity;
 
 import android.location.Location;
 
-import com.yourtrack.track.map.ITrackFilter;
-import com.yourtrack.track.map.Point;
-import com.yourtrack.track.map.TrackPatch;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class MinMoveTrackFilter implements ITrackFilter {
     private double filterMetric;
@@ -16,8 +13,8 @@ public class MinMoveTrackFilter implements ITrackFilter {
         this.filterMetric = distance * distance;
     }
 
-    @Override @NotNull
-    public FilterResult filterTrack(TrackPatch track, @Nullable Location next, @NotNull FilterResult cumulativeResult) {
+    @Override @NonNull
+    public FilterResult filterTrack(TrackPatch track, @Nullable Location next, @NonNull FilterResult cumulativeResult) {
         if (next != null) {
             if (track.getFirstPatchIndex() == 0) {
                 cumulativeResult = FilterResult.accumulate(cumulativeResult, FilterResult.LAST_POINT);

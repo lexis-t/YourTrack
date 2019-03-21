@@ -1,14 +1,11 @@
-package com.yourtrack.track.trackfilters;
+package com.yourtrack.dataservice.activity;
 
 import android.location.Location;
 
-import com.yourtrack.track.map.ITrackFilter;
-import com.yourtrack.track.map.TrackPatch;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Collection;
+
+import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 
 public class TrackFilterChain implements ITrackFilter {
     private Collection<ITrackFilter> filters;
@@ -17,8 +14,8 @@ public class TrackFilterChain implements ITrackFilter {
         this.filters = filters;
     }
 
-    @Override @NotNull
-    public FilterResult filterTrack(TrackPatch track, @Nullable Location nextLocation, @NotNull FilterResult cumulativeRes) throws Exception{
+    @Override @NonNull
+    public FilterResult filterTrack(TrackPatch track, @Nullable Location nextLocation, @NonNull FilterResult cumulativeRes) throws Exception{
         FilterResult res = cumulativeRes;
         for (ITrackFilter f: filters) {
             res = f.filterTrack(track, nextLocation, res);

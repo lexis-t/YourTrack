@@ -3,11 +3,11 @@ package com.yourtrack.track.mapsforge;
 import android.location.Location;
 import android.util.Log;
 
+import com.yourtrack.dataservice.activity.ITrackFilter;
+import com.yourtrack.dataservice.activity.Point;
+import com.yourtrack.dataservice.activity.TrackBase;
+import com.yourtrack.dataservice.activity.TrackPatch;
 import com.yourtrack.track.map.ITrackController;
-import com.yourtrack.track.map.ITrackFilter;
-import com.yourtrack.track.map.Point;
-import com.yourtrack.track.map.TrackBase;
-import com.yourtrack.track.map.TrackPatch;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

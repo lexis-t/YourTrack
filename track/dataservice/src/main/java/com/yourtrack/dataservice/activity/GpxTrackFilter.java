@@ -1,16 +1,13 @@
-package com.yourtrack.track.trackfilters;
+package com.yourtrack.dataservice.activity;
 
 import android.location.Location;
 
-import com.yourtrack.track.map.ITrackFilter;
-import com.yourtrack.track.map.TrackPatch;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joda.time.LocalDateTime;
 
 import java.io.File;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import io.jenetics.jpx.GPX;
 import io.jenetics.jpx.TrackSegment;
 
@@ -21,8 +18,8 @@ public class GpxTrackFilter implements ITrackFilter {
         this.dir = dir.toString();
     }
 
-    @Override @NotNull
-    public FilterResult filterTrack(TrackPatch track, @Nullable Location nextLocation, @NotNull FilterResult cumulativeResult) throws Exception{
+    @Override @NonNull
+    public FilterResult filterTrack(TrackPatch track, @Nullable Location nextLocation, @NonNull FilterResult cumulativeResult) throws Exception{
 
         if (track.getPointCount() > 2) {
             LocalDateTime time = new LocalDateTime(track.getFirstPoint().getTime());

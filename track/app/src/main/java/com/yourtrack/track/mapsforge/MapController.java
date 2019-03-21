@@ -39,8 +39,8 @@ import java.io.File;
 import org.mapsforge.map.layer.Layers;
 import org.mapsforge.map.layer.cache.TileCache;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public final class MapController implements IMapController {
     private final static String PREFERENCES_FILE =  "mapcontroller.pref";
@@ -50,7 +50,7 @@ public final class MapController implements IMapController {
     private final Marker locationMarker;
     private final MapView view;
 
-    public MapController(@NotNull Context context, @NotNull MapView view, @NotNull Location initialLocation) {
+    public MapController(@NonNull Context context, @NonNull MapView view, @NonNull Location initialLocation) {
         super();
         this.view = view;
         this.pref = context.getSharedPreferences(PREFERENCES_FILE, 0);
@@ -106,7 +106,7 @@ public final class MapController implements IMapController {
         return view.getModel().displayModel.getScaleFactor();
     }
 
-    @NotNull
+    @NonNull
     public final TrackController newTrack() {
         TrackController track = new TrackController(this);
         view.getLayerManager().getLayers().add(track.getLayer());

@@ -1,8 +1,6 @@
-package com.yourtrack.track.map;
+package com.yourtrack.dataservice.activity;
 
 import android.location.Location;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,12 +8,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import androidx.annotation.NonNull;
+
 public class TrackPatch implements ITrack {
     private ITrack baseTrack;
     private int firstPatchIndex;
     private ArrayList<Point> patchPoints;
 
-    public TrackPatch(@NotNull ITrack baseTrack) {
+    public TrackPatch(@NonNull ITrack baseTrack) {
         this.baseTrack = baseTrack;
         this.firstPatchIndex = baseTrack.getPointCount();
     }

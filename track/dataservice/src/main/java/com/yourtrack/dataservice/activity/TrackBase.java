@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
-public class TrackBase implements ITrack {
+public class TrackBase implements IActivity {
     private LinkedList<Point> points = new LinkedList<>();
 
     @Override
@@ -31,8 +31,8 @@ public class TrackBase implements ITrack {
     }
 
     @Override
-    public void addPoint(Location nextLocation) {
-        points.add(new Point(nextLocation));
+    public void addPoint(Point p) {
+        points.add(p);
     }
 
     public void setPoints(int startIndex, Collection<Point> points) {

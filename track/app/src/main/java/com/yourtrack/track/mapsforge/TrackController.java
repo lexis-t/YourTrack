@@ -31,9 +31,9 @@ public class TrackController implements ITrackController {
 
     private class Track extends TrackBase {
         @Override
-        public void addPoint(Location nextLocation) {
-            super.addPoint(nextLocation);
-            layer.addPoint(new LatLong(nextLocation.getLatitude(), nextLocation.getLongitude()));
+        public void addPoint(Point p) {
+            super.addPoint(p);
+            layer.addPoint(new LatLong(p.getLatitude(), p.getLongitude()));
         }
         @Override
         public void setPoints(int startIndex, Collection<Point> points) {
@@ -75,13 +75,13 @@ public class TrackController implements ITrackController {
         try {
             if (filter != null) {
                 TrackPatch patch = new TrackPatch(track);
-                patch.addPoint(nextLocation);
+                patch.addPoint(new Point(nextLocation));
                 if (filter.filterTrack(patch, nextLocation, ITrackFilter.FilterResult.LAST_POINT) != ITrackFilter.FilterResult.DROP_UPDATE) {
                     patch.applyPatch();
                     mapController.get().repaintMap();
                 }
             } else {
-                track.addPoint(nextLocation);
+                track.addPoint(new Point(nextLocation));
                 mapController.get().repaintMap();
             }
         }

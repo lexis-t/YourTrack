@@ -10,6 +10,10 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -29,6 +33,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 public class DataService extends Service {
     private final static String LOG_TAG = "YourTrack";
 
+    private static final int FOREGROUND_NOTIFICATION_ID = 3;
     private static final int REQUEST_ID_ACTIVITY_TRANSITION = 2;
 
     private final static String ACTION_START = "ACTION_START";
@@ -49,6 +54,9 @@ public class DataService extends Service {
     public final static String EXTRA_ACTIVITY_BICYCLE = "bicycle";
     public final static String EXTRA_ACTIVITY_DRIVE = "drive";
     public final static String EXTRA_ACTIVITY_SLEEP = "sleep";
+
+    public final static String EXTRA_SENSOR_LOCATION = "location";
+    public final static String EXTRA_LOCATION = "location";
 
     private final static List<ActivityTransition> ACTIVITY_TRANSITIONS = new ArrayList<>();
 
@@ -118,30 +126,20 @@ public class DataService extends Service {
     private boolean isStarted = false;
     private PendingIntent activityTransitionsPendingIntent = null;
 
-    private float lastHrValue = 0.0f;
-    private int lastHrAccuracy = -1;
-    private long lastHrTimestamp = -1L;
+    private float lastHrValue;
+    private int lastHrAccuracy;
+    private long lastHrTimestamp;
 
-    private String lastActivityType = EXTRA_ACTIVITY_UNKNOWN;
-    private long lastActivityTimestamp = -1L;
+    private String lastActivityType;
+    private long lastActivityTimestamp;
+
+    private Location lastLocation;
 
     private SensorManager sensorManager;
     private SensorEventListener hrListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
-            Log.i(LOG_TAG, "Heart rate: " + event.values[0] + " , accuracy: " + event.accuracy);
-
-            lastHrValue = event.values[0];
-            lastHrAccuracy = event.accuracy;
-            lastHrTimestamp = event.timestamp;
-
-            Intent i = new Intent(ACTION_DATA);
-            i.putExtra(EXTRA_SENSOR_TYPE, EXTRA_SENSOR_HR);
-            i.putExtra(EXTRA_VALUE, event.values[0]);
-            i.putExtra(EXTRA_ACCURACY, event.accuracy);
-            i.putExtra(EXTRA_TIMESTAMP, event.timestamp);
-
-            LocalBroadcastManager.getInstance(DataService.this).sendBroadcast(i);
+            processHeartRate(event);
         }
 
         @Override
@@ -150,10 +148,36 @@ public class DataService extends Service {
         }
     };
 
+    private LocationManager locationManager;
+    private LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            processLocation(location);
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) { }
+
+        @Override
+        public void onProviderEnabled(String provider) { }
+
+        @Override
+        public void onProviderDisabled(String provider) { }
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
         sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
+
+        lastHrValue = 0.0f;
+        lastHrAccuracy = -1;
+        lastHrTimestamp = -1L;
+
+        lastActivityType = EXTRA_ACTIVITY_UNKNOWN;
+        lastActivityTimestamp = -1L;
+
+        lastLocation = null;
     }
 
     @Override
@@ -204,7 +228,7 @@ public class DataService extends Service {
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_heartrate_bw))
                 .setContentIntent(PendingIntent.getActivity(this, 0, i, 0)).build();
 
-        startForeground(0, n);
+        startForeground(FOREGROUND_NOTIFICATION_ID, n);
         isStarted = true;
     }
 
@@ -212,8 +236,7 @@ public class DataService extends Service {
         Sensor hrSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE);
         if (hrSensor == null) {
             Log.w(LOG_TAG, "HR sensor is unavailable");
-        }
-        else {
+        } else {
 
             Log.i(LOG_TAG, "HR sensor: is wakeup: " + hrSensor.isWakeUpSensor() + ", reporting mode: " + hrSensor.getReportingMode());
 
@@ -247,6 +270,14 @@ public class DataService extends Service {
             intent.putExtra(EXTRA_ACTIVITY, lastActivityType);
             intent.putExtra(EXTRA_TIMESTAMP, lastActivityTimestamp);
         }
+
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        try {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 150F, locationListener);
+        }
+        catch(SecurityException e) {
+        }
+
 
     }
 
@@ -287,8 +318,37 @@ public class DataService extends Service {
             i.putExtra(EXTRA_ACTIVITY, lastActivityType);
             i.putExtra(EXTRA_TIMESTAMP, lastActivityTimestamp);
 
-            LocalBroadcastManager.getInstance(DataService.this).sendBroadcast(i);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(i);
         }
+    }
+
+    private void processLocation(Location location) {
+        Intent i = new Intent(ACTION_DATA);
+        i.putExtra(EXTRA_SENSOR_TYPE, EXTRA_SENSOR_LOCATION);
+        i.putExtra(EXTRA_TIMESTAMP, location.getTime());
+        i.putExtra(EXTRA_LOCATION, location);
+
+        LocalBroadcastManager.getInstance(this).sendBroadcast(i);
+
+        //TODO: add track filter processing
+
+    }
+
+    private void processHeartRate(SensorEvent event) {
+        lastHrValue = event.values[0];
+        lastHrAccuracy = event.accuracy;
+        lastHrTimestamp = event.timestamp;
+
+        Intent i = new Intent(ACTION_DATA);
+        i.putExtra(EXTRA_SENSOR_TYPE, EXTRA_SENSOR_HR);
+        i.putExtra(EXTRA_VALUE, event.values[0]);
+        i.putExtra(EXTRA_ACCURACY, event.accuracy);
+        i.putExtra(EXTRA_TIMESTAMP, event.timestamp);
+
+        LocalBroadcastManager.getInstance(DataService.this).sendBroadcast(i);
+
+        //TODO: add track filter processing
+
     }
 
     private void stop() {

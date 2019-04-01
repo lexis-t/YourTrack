@@ -16,6 +16,10 @@ import android.widget.TextView;
 
 import com.yourtrack.dataservice.DataService;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 public class TrackActivity extends WearableActivity {
@@ -104,9 +108,20 @@ public class TrackActivity extends WearableActivity {
         IntentFilter f = new IntentFilter(DataService.ACTION_DATA);
         LocalBroadcastManager.getInstance(this).registerReceiver(dataReceiver, f);
 
+        List<String> permissions = new ArrayList<>(2);
+
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.i(LOG_TAG, "Requesting ACCESS_FINE_LOCATION permission");
+            permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+
         if (checkSelfPermission(Manifest.permission.BODY_SENSORS) != PackageManager.PERMISSION_GRANTED) {
             Log.i(LOG_TAG, "Requesting BODY_SENSORS permission");
-            requestPermissions(new String[] {Manifest.permission.BODY_SENSORS}, REQUEST_ID_BODY_SENSORS);
+            permissions.add(Manifest.permission.BODY_SENSORS);
+        }
+
+        if (permissions.size() > 0) {
+            requestPermissions(permissions.toArray(new String[]{}), REQUEST_ID_BODY_SENSORS);
         }
         else {
             DataService.startTracking(this);

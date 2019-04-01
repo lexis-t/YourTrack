@@ -10,12 +10,12 @@ import java.util.ListIterator;
 
 import androidx.annotation.NonNull;
 
-public class TrackPatch implements ITrack {
-    private ITrack baseTrack;
+public class TrackPatch implements IActivity {
+    private IActivity baseTrack;
     private int firstPatchIndex;
     private ArrayList<Point> patchPoints;
 
-    public TrackPatch(@NonNull ITrack baseTrack) {
+    public TrackPatch(@NonNull IActivity baseTrack) {
         this.baseTrack = baseTrack;
         this.firstPatchIndex = baseTrack.getPointCount();
     }
@@ -54,11 +54,11 @@ public class TrackPatch implements ITrack {
     }
 
     @Override
-    public void addPoint(Location nextLocation) {
+    public void addPoint(Point p) {
         if (patchPoints == null) {
             patchPoints = new ArrayList<>(1);
         }
-        patchPoints.add(new Point(nextLocation));
+        patchPoints.add(p);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class TrackPatch implements ITrack {
         firstPatchIndex = startIndex;
     }
 
-    public ITrack getBaseTrack() {
+    public IActivity getBaseTrack() {
         return baseTrack;
     }
 

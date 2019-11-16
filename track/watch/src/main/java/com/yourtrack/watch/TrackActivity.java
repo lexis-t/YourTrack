@@ -17,7 +17,6 @@ import android.widget.TextView;
 import com.yourtrack.dataservice.DataService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -167,7 +166,7 @@ public class TrackActivity extends WearableActivity {
     public void onExitAmbient() {
         super.onExitAmbient();
 
-        backgroundView.setBackgroundColor(getResources().getColor(R.color.interactive_background));
+        backgroundView.setBackground(getResources().getDrawable(R.drawable.background));
         textIndicatorView.setTextColor(getResources().getColor(R.color.interactive_heartrate));
         stopButton.setVisibility(View.VISIBLE);
 
